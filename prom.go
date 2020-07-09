@@ -5,7 +5,6 @@ package ginprom
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
@@ -310,16 +309,14 @@ func prometheusHandler(token string) gin.HandlerFunc {
 			return
 		}
 
-		header := c.Request.Header.Get("Authorization")
+		suppliedToken, exists := c.GetQuery("token")
 
-		if header == "" {
+		if !exists || suppliedToken == "" {
 			c.String(http.StatusUnauthorized, errInvalidToken.Error())
 			return
 		}
 
-		bearer := fmt.Sprintf("Bearer %s", token)
-
-		if header != bearer {
+		if suppliedToken != token {
 			c.String(http.StatusUnauthorized, errInvalidToken.Error())
 			return
 		}
