@@ -272,8 +272,8 @@ func TestMetricsBearerToken(t *testing.T) {
 	})
 
 	g.GET(p.MetricsPath).
-		SetHeader(gofight.H{
-			"Authorization": "Bearer " + "test-1234-5678",
+		SetQuery(gofight.H{
+			"token": "test-1234-5678",
 		}).
 		Run(r, func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
 			assert.Equal(t, http.StatusUnauthorized, r.Code)
@@ -281,8 +281,8 @@ func TestMetricsBearerToken(t *testing.T) {
 		})
 
 	g.GET(p.MetricsPath).
-		SetHeader(gofight.H{
-			"Authorization": "Bearer " + "test-1234",
+		SetQuery(gofight.H{
+			"token": "test-1234",
 		}).
 		Run(r, func(r gofight.HTTPResponse, rq gofight.HTTPRequest) {
 			assert.Equal(t, http.StatusOK, r.Code)
