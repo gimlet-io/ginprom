@@ -5,6 +5,7 @@ package ginprom
 
 import (
 	"errors"
+	"github.com/prometheus/common/log"
 	"net/http"
 	"strconv"
 	"sync"
@@ -49,6 +50,7 @@ type Prometheus struct {
 	Token       string
 	Ignored     pmapb
 	Engine      *gin.Engine
+	Port		string
 	PathMap     pmap
 	BucketsSize []float64
 }
@@ -167,6 +169,14 @@ func Engine(e *gin.Engine) func(*Prometheus) {
 	}
 }
 
+// Port is an option allowing to set custom port for the metrics endpoint
+// when intializing with New
+func Port(port string) func(*Prometheus) {
+	return func(p *Prometheus) {
+		p.Port = port
+	}
+}
+
 // New will initialize a new Prometheus instance with the given options.
 // If no options are passed, sane defaults are used.
 // If a router is passed using the Engine() option, this instance will
@@ -185,6 +195,15 @@ func New(options ...func(*Prometheus)) *Prometheus {
 	p.register()
 	if p.Engine != nil {
 		p.Engine.GET(p.MetricsPath, prometheusHandler(p.Token))
+	}
+	if p.Port != "" {
+		servingEngine := gin.Default()
+		servingEngine.GET(p.MetricsPath, prometheusHandler(p.Token))
+		go func() {
+			if err := servingEngine.Run(p.Port); err != nil {
+				log.Error(err.Error())
+			}
+		}()
 	}
 
 	return p
